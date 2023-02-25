@@ -1,7 +1,16 @@
 package com.webhook.techstax.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.webhook.techstax.connector.RestApiConnector;
+import com.webhook.techstax.entity.GithubResponse;
+import com.webhook.techstax.exception.BindingException;
+import com.webhook.techstax.jsontoclass.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,8 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class WebhookController {
-
+    @Value("${techstax.github.api}")
+    private String githubApiUrl;
    private Logger logger= LoggerFactory.getLogger(WebhookController.class);
+   @Autowired
+   private RestApiConnector restApiConnector;
     @PostMapping("/webhook")
     public ResponseEntity<String> getDataFromGithub(@RequestBody String data)
     {
@@ -20,10 +32,22 @@ public class WebhookController {
         return new ResponseEntity<String>(data, HttpStatus.OK);
     }
 
-    @GetMapping("/hello")
-    public String hello()
-    {
-        logger.info("hello world");
-        return "hello";
+
+
+    @GetMapping("/github/list/commits")
+    public GithubResponse[] getListOfCommits() throws JsonProcessingException {
+        String response=restApiConnector.callService(githubApiUrl);
+        logger.info("list of commits"+response.toString());
+        GithubResponse[] githubResponses;
+        try{
+             githubResponses= CommonUtils.newObjectMapper().readValue(response, GithubResponse[].class);
+
+        }
+        catch(Exception e)
+        {
+            throw new BindingException("error in binding");
+        }
+
+        return githubResponses;
     }
 }
