@@ -25,6 +25,7 @@ public class WebhookController {
    private Logger logger= LoggerFactory.getLogger(WebhookController.class);
    @Autowired
    private RestApiConnector restApiConnector;
+   //api to tracks push, pull, and merge events in the Github
     @PostMapping("/webhook")
     public ResponseEntity<String> getDataFromGithub(@RequestBody String data)
     {
@@ -33,7 +34,7 @@ public class WebhookController {
     }
 
 
-
+   //api to retrieve list of commits from the githup api
     @GetMapping("/github/list/commits")
     public GithubResponse[] getListOfCommits() throws JsonProcessingException {
         String response=restApiConnector.callService(githubApiUrl);
